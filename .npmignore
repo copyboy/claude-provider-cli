@@ -1,0 +1,23 @@
+# Source files
+src/
+tests/
+*.ts
+!*.d.ts
+
+# Config files
+tsconfig.json
+.eslintrc.js
+.prettierrc
+jest.config.js
+.husky/
+
+# Development
+.github/
+scripts/
+docs/examples/
+
+# Other
+*.md
+!README.md
+!LICENSE
+
