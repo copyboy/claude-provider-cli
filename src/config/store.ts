@@ -1,4 +1,6 @@
 import Conf from 'conf';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Provider } from '../types/provider';
 import { Config, UserPreferences } from '../types/config';
 import { DEFAULT_PROVIDERS } from '../providers';
@@ -24,8 +26,29 @@ export class ConfigStore {
       },
     });
 
+    // Secure the config file (chmod 600)
+    this.secureConfigFile();
+
     // Migrate if needed
     this.migrate();
+  }
+
+  /**
+   * Secure config file with chmod 600 (owner read/write only)
+   * 🆕 NEW: Protect tokens from unauthorized access
+   */
+  private secureConfigFile(): void {
+    try {
+      const configPath = this.store.path;
+      if (fs.existsSync(configPath)) {
+        fs.chmodSync(configPath, 0o600);
+      }
+    } catch (error) {
+      // On Windows, chmod may not work as expected, silently ignore
+      if (process.platform !== 'win32') {
+        console.warn('Warning: Could not secure config file permissions');
+      }
+    }
   }
 
   /**
@@ -64,6 +87,55 @@ export class ConfigStore {
     const providers = this.getProviders();
     providers[id] = provider;
     this.store.set('providers', providers);
+    
+    // Ensure config file is secured after adding/updating provider
+    this.secureConfigFile();
+  }
+
+  /**
+   * Add or update token for a provider
+   * 🆕 NEW: Securely store API token
+   */
+  addProviderToken(providerId: string, token: string): void {
+    const provider = this.getProvider(providerId);
+    if (!provider) {
+      throw new Error(`Provider '${providerId}' not found`);
+    }
+
+    provider.authToken = token;
+    this.setProvider(providerId, provider);
+  }
+
+  /**
+   * Get token for a provider
+   * 🆕 NEW: Retrieve stored token
+   */
+  getProviderToken(providerId: string): string | undefined {
+    const provider = this.getProvider(providerId);
+    return provider?.authToken;
+  }
+
+  /**
+   * Check if provider has token configured
+   * 🆕 NEW: Check token status
+   */
+  hasProviderToken(providerId: string): boolean {
+    const token = this.getProviderToken(providerId);
+    return token !== undefined && token !== null && token.length > 0;
+  }
+
+  /**
+   * Remove token from provider
+   * 🆕 NEW: Remove token without deleting provider
+   */
+  removeProviderToken(providerId: string): void {
+    const provider = this.getProvider(providerId);
+    if (!provider) {
+      throw new Error(`Provider '${providerId}' not found`);
+    }
+
+    delete provider.authToken;
+    this.setProvider(providerId, provider);
   }
 
   /**

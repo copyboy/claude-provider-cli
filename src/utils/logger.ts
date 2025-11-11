@@ -32,6 +32,14 @@ export class Logger {
   blank(): void {
     console.log();
   }
+
+  /**
+   * Format command for display
+   * 🆕 NEW: Highlight commands in output
+   */
+  command(cmd: string): string {
+    return chalk.cyan.bold(cmd);
+  }
 }
 
 export const logger = new Logger();

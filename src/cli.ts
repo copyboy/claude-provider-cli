@@ -6,6 +6,7 @@ import { listCommand } from './commands/list';
 import { useCommand } from './commands/use';
 import { currentCommand } from './commands/current';
 import { statusCommand } from './commands/status';
+import { addCommand } from './commands/add';
 import { handleError } from './utils/error';
 
 const program = new Command();
@@ -13,7 +14,7 @@ const program = new Command();
 program
   .name('claude-provider')
   .description('Complete solution for managing Claude Code API providers')
-  .version('0.1.0');
+  .version('0.2.0'); // 🆕 Version bump
 
 // List command
 program
@@ -24,6 +25,22 @@ program
   .action((options) => {
     try {
       listCommand(options);
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+// Add command - 🆕 NEW
+program
+  .command('add <provider>')
+  .description('Add or update provider token/configuration')
+  .option('-t, --token <token>', 'API authentication token')
+  .option('-u, --url <url>', 'API base URL (for custom providers)')
+  .option('-n, --name <name>', 'Provider display name (for custom providers)')
+  .option('-d, --description <description>', 'Provider description (for custom providers)')
+  .action(async (provider, options) => {
+    try {
+      await addCommand(provider, options);
     } catch (error) {
       handleError(error);
     }

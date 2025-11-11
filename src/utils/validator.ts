@@ -69,3 +69,29 @@ export class Validator {
 
 export const validator = new Validator();
 
+// Export standalone validation functions for convenience
+// 🆕 NEW: Convenient standalone functions
+export function validateUrl(url: string): string | null {
+  if (!validator.isValidUrl(url)) {
+    return 'Invalid URL format. Must start with http:// or https://';
+  }
+  return null;
+}
+
+export function validateToken(token: string): string | null {
+  if (!token || token.trim().length === 0) {
+    return 'Token cannot be empty';
+  }
+  if (!validator.isValidToken(token)) {
+    return 'Token must be between 10 and 500 characters';
+  }
+  return null;
+}
+
+export function validateProviderId(id: string): string | null {
+  if (!validator.isValidProviderId(id)) {
+    return 'Provider ID must contain only lowercase letters, numbers, hyphens, and underscores';
+  }
+  return null;
+}
+
