@@ -29,9 +29,10 @@ export class Validator {
 
   /**
    * Validate API token format
+   * Note: Some providers (e.g., MiniMax) use very long JWT tokens
    */
   isValidToken(token: string): boolean {
-    return token.length >= 10 && token.length <= 500;
+    return token.length >= 10 && token.length <= 2000;
   }
 
   /**
@@ -83,7 +84,7 @@ export function validateToken(token: string): string | null {
     return 'Token cannot be empty';
   }
   if (!validator.isValidToken(token)) {
-    return 'Token must be between 10 and 500 characters';
+    return 'Token must be between 10 and 2000 characters';
   }
   return null;
 }
