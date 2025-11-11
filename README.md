@@ -75,24 +75,52 @@ npx claude-provider-cli
 
 ### 1. 配置 API Token
 
-首先在环境变量中配置你的 API Token（仅需配置一次）：
+> **⚠️ v0.1.0 限制**: 当前版本只支持**单一 Token**。如果你的 GLM 和 MiniMax 使用不同的 Token，请选择以下方案之一。
+
+首先在环境变量中配置你的 API Token：
 
 ```bash
 # 编辑你的 shell 配置文件
 vi ~/.zshrc  # 或 ~/.bashrc
 
-# 添加你的 Token（任选其一）
-export ANTHROPIC_AUTH_TOKEN="你的智谱GLM密钥"
-# 或
-export ANTHROPIC_AUTH_TOKEN="你的MiniMax令牌"
+# === 场景 A: 两个供应商使用相同 Token ===
+export ANTHROPIC_AUTH_TOKEN="你的共用Token"
+
+# === 场景 B: 两个供应商使用不同 Token（临时方案）===
+# 方案 1: 只配置最常用的供应商Token
+export ANTHROPIC_AUTH_TOKEN="你最常用的GLM密钥"
+
+# 方案 2: 配置两个不同名称的变量（推荐）
+export GLM_TOKEN="你的GLM密钥"
+export MINIMAX_TOKEN="你的MiniMax令牌"
+# 使用时手动切换（见下方说明）
 
 # 重新加载
 source ~/.zshrc
 ```
 
+**如果使用方案 2（不同 Token），切换时需要手动更新：**
+```bash
+# 切换到 GLM
+export ANTHROPIC_AUTH_TOKEN=$GLM_TOKEN
+claude-provider use glm
+
+# 切换到 MiniMax
+export ANTHROPIC_AUTH_TOKEN=$MINIMAX_TOKEN
+claude-provider use minimax
+```
+
 **获取 API Token：**
 - [智谱 GLM](https://open.bigmodel.cn/) - 智谱 AI 开放平台
 - [MiniMax](https://platform.minimaxi.com/) - MiniMax 开放平台
+
+> **💡 v0.2.0 将彻底解决**: 未来版本将支持每个供应商存储独立 Token，切换时自动切换正确的 Token。
+> ```bash
+> # v0.2.0 将支持
+> claude-provider add glm --token "GLM密钥"
+> claude-provider add minimax --token "MiniMax令牌"
+> claude-provider use glm  # 自动使用正确的Token
+> ```
 
 ### 2. 列出可用供应商
 
@@ -388,22 +416,57 @@ export ANTHROPIC_AUTH_TOKEN="新的Token"
 
 ### 多个供应商如何管理 Token？
 
-目前 v0.1.0 版本的解决方案：
+> **这是 v0.1.0 的核心限制**
+
+**问题说明：**
+
+当前版本只支持单一 `ANTHROPIC_AUTH_TOKEN` 环境变量。如果 GLM 和 MiniMax 使用不同的 Token，切换供应商时：
+- ✅ 工具会自动切换 `ANTHROPIC_BASE_URL`
+- ✅ 工具会自动切换 `ANTHROPIC_MODEL` 等其他变量
+- ❌ 但 `ANTHROPIC_AUTH_TOKEN` **不会自动切换**
+
+**临时解决方案：**
 
 ```bash
-# 在 ~/.zshrc 中只配置一个 Token
-export ANTHROPIC_AUTH_TOKEN="你的密钥"
+# 在 ~/.zshrc 中配置两个变量
+export GLM_TOKEN="你的GLM密钥"
+export MINIMAX_TOKEN="你的MiniMax令牌"
 
-# 如果两个供应商使用不同 Token
-# 方案 1: 使用最常用的供应商Token
-# 方案 2: 切换时手动更新（临时）
-export ANTHROPIC_AUTH_TOKEN="另一个密钥"
+# 创建别名简化操作
+alias use-glm='export ANTHROPIC_AUTH_TOKEN=$GLM_TOKEN && claude-provider use glm'
+alias use-minimax='export ANTHROPIC_AUTH_TOKEN=$MINIMAX_TOKEN && claude-provider use minimax'
 
-# 未来 v0.2.0 将支持
-# claude-provider add glm --token "GLM密钥"
-# claude-provider add minimax --token "MiniMax令牌"
-# 工具会自动管理不同供应商的 Token
+# 使用
+use-glm      # 切换到 GLM（Token + 配置）
+use-minimax  # 切换到 MiniMax（Token + 配置）
 ```
+
+**v0.2.0 完整解决方案：**
+
+```bash
+# 未来版本将支持
+claude-provider add glm --token "GLM密钥"
+claude-provider add minimax --token "MiniMax令牌"
+
+# 切换时自动使用正确的 Token
+claude-provider use glm      # 自动切换到 GLM Token
+claude-provider use minimax  # 自动切换到 MiniMax Token
+
+# Token 安全存储在配置文件中（chmod 600）
+```
+
+**为什么现在不支持？**
+
+v0.1.0 是 MVP 版本，专注于核心功能：
+- ✅ 供应商切换和管理
+- ✅ 环境变量自动配置
+- ✅ 配置持久化
+
+Token 安全管理需要更多考虑：
+- 🔐 安全存储机制
+- 🔄 Token 加密/解密
+- 📝 完整的 CRUD 操作
+- ✅ 这些将在 v0.2.0 中实现
 
 ### 需要帮助？
 
