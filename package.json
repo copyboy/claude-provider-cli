@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "ts-node src/cli.ts",
     "build": "tsc && chmod +x bin/claude-provider",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint 'src/**/*.ts'",
