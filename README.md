@@ -32,13 +32,80 @@ npx claude-provider-cli
 
 ## 快速开始 Quick Start
 
-### 1. 列出所有可用供应商
+### 1. 配置 API Token
+
+在使用前，你需要先配置 API Token。有两种方式：
+
+#### 方式 1: 直接设置环境变量（推荐）
+
+**智谱 GLM：**
+```bash
+# 在 ~/.zshrc 或 ~/.bashrc 中添加
+export ANTHROPIC_BASE_URL="https://open.bigmodel.cn/api/anthropic"
+export ANTHROPIC_AUTH_TOKEN="你的智谱API密钥"
+
+# 重新加载配置
+source ~/.zshrc
+```
+
+**MiniMax：**
+```bash
+# 在 ~/.zshrc 或 ~/.bashrc 中添加
+export ANTHROPIC_BASE_URL="https://api.minimaxi.com/anthropic"
+export ANTHROPIC_AUTH_TOKEN="你的MiniMax令牌"
+export API_TIMEOUT_MS="3000000"
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1"
+export ANTHROPIC_MODEL="MiniMax-M2"
+export ANTHROPIC_SMALL_FAST_MODEL="MiniMax-M2"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="MiniMax-M2"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="MiniMax-M2"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="MiniMax-M2"
+
+# 重新加载配置
+source ~/.zshrc
+```
+
+#### 方式 2: 使用 Shell 函数（多供应商场景）
+
+在 `~/.zshrc` 或 `~/.bashrc` 中添加切换函数：
+
+```bash
+# 切换到智谱 GLM
+claude_use_glm() {
+    export ANTHROPIC_BASE_URL="https://open.bigmodel.cn/api/anthropic"
+    export ANTHROPIC_AUTH_TOKEN="你的智谱API密钥"
+    echo "✓ 已切换到智谱 GLM API"
+}
+
+# 切换到 MiniMax
+claude_use_minimax() {
+    export ANTHROPIC_BASE_URL="https://api.minimaxi.com/anthropic"
+    export ANTHROPIC_AUTH_TOKEN="你的MiniMax令牌"
+    export API_TIMEOUT_MS="3000000"
+    export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC="1"
+    export ANTHROPIC_MODEL="MiniMax-M2"
+    export ANTHROPIC_SMALL_FAST_MODEL="MiniMax-M2"
+    export ANTHROPIC_DEFAULT_SONNET_MODEL="MiniMax-M2"
+    export ANTHROPIC_DEFAULT_OPUS_MODEL="MiniMax-M2"
+    export ANTHROPIC_DEFAULT_HAIKU_MODEL="MiniMax-M2"
+    echo "✓ 已切换到 MiniMax M2 API"
+}
+
+# 重新加载配置
+source ~/.zshrc
+
+# 使用方式
+claude_use_glm      # 切换到 GLM
+claude_use_minimax  # 切换到 MiniMax
+```
+
+### 2. 列出所有可用供应商
 
 ```bash
 claude-provider list
 ```
 
-### 2. 切换到某个供应商
+### 3. 切换到某个供应商
 
 ```bash
 # 切换到智谱 GLM
@@ -48,13 +115,13 @@ claude-provider use glm
 claude-provider use minimax
 ```
 
-### 3. 查看当前供应商
+### 4. 查看当前供应商
 
 ```bash
 claude-provider current
 ```
 
-### 4. 测试连接
+### 5. 测试连接
 
 ```bash
 claude-provider status
@@ -126,10 +193,66 @@ Base URL: https://api.minimaxi.com/anthropic
 
 ## 配置 Configuration
 
-配置文件自动存储在：
+### 配置文件位置
 
-- **macOS/Linux**: `~/.config/claude-provider-cli/`
-- **Windows**: `%APPDATA%\claude-provider-cli\`
+配置文件自动存储在系统标准位置：
+
+- **macOS**: `~/Library/Preferences/claude-provider-cli-nodejs/config.json`
+- **Linux**: `~/.config/claude-provider-cli-nodejs/config.json`
+- **Windows**: `%APPDATA%\claude-provider-cli-nodejs\config.json`
+
+### 配置内容说明
+
+配置文件存储：
+- ✅ 供应商列表
+- ✅ 当前激活的供应商
+- ✅ 基础 URL 配置
+- ✅ 用户偏好设置
+
+**重要**: API Token **不会**存储在配置文件中，而是通过环境变量管理，确保安全。
+
+### 获取 API Token
+
+#### 智谱 GLM API
+1. 访问 [智谱 AI 开放平台](https://open.bigmodel.cn/)
+2. 注册/登录账号
+3. 在控制台创建 API Key
+4. 复制 API Key 配置到环境变量
+
+#### MiniMax API
+1. 访问 [MiniMax 开放平台](https://platform.minimaxi.com/)
+2. 注册/登录账号
+3. 在控制台创建 API Token
+4. 复制 Token 配置到环境变量
+
+### 环境变量说明
+
+**必需的环境变量：**
+- `ANTHROPIC_BASE_URL`: API 基础地址
+- `ANTHROPIC_AUTH_TOKEN`: API 认证令牌
+
+**可选的环境变量（MiniMax）：**
+- `API_TIMEOUT_MS`: 超时时间（毫秒）
+- `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`: 禁用非必要流量
+- `ANTHROPIC_MODEL`: 默认模型名称
+- `ANTHROPIC_SMALL_FAST_MODEL`: 小型快速模型
+- `ANTHROPIC_DEFAULT_SONNET_MODEL`: 默认 Sonnet 模型
+- `ANTHROPIC_DEFAULT_OPUS_MODEL`: 默认 Opus 模型
+- `ANTHROPIC_DEFAULT_HAIKU_MODEL`: 默认 Haiku 模型
+
+### 查看配置
+
+```bash
+# 查看当前供应商配置
+claude-provider current
+
+# 查看配置文件（macOS）
+cat ~/Library/Preferences/claude-provider-cli-nodejs/config.json
+
+# 查看当前环境变量
+echo $ANTHROPIC_BASE_URL
+echo $ANTHROPIC_AUTH_TOKEN
+```
 
 ## 使用场景 Use Cases
 
@@ -166,6 +289,25 @@ claude-provider use minimax
 
 ## 故障排查 Troubleshooting
 
+### API Token 未配置？
+
+如果遇到认证错误，可能是 Token 未配置：
+
+```bash
+# 检查环境变量是否设置
+echo $ANTHROPIC_AUTH_TOKEN
+
+# 如果为空，需要配置 Token
+# 编辑 shell 配置文件
+vi ~/.zshrc  # 或 ~/.bashrc
+
+# 添加环境变量
+export ANTHROPIC_AUTH_TOKEN="你的API密钥"
+
+# 重新加载
+source ~/.zshrc
+```
+
 ### 配置未生效？
 
 确保环境变量已设置：
@@ -178,6 +320,9 @@ claude-provider current
 source ~/.zshrc
 # 或
 source ~/.bashrc
+
+# 验证环境变量
+env | grep ANTHROPIC
 ```
 
 ### 连接失败？
@@ -190,6 +335,41 @@ claude-provider status --verbose
 
 # 尝试另一个供应商
 claude-provider use minimax
+
+# 测试 API 地址可访问性
+curl -I https://open.bigmodel.cn/api/anthropic
+```
+
+### Token 无效？
+
+验证 Token 是否正确：
+
+```bash
+# 1. 检查 Token 值
+echo $ANTHROPIC_AUTH_TOKEN
+
+# 2. 重新获取 Token
+# 智谱 GLM: https://open.bigmodel.cn/
+# MiniMax: https://platform.minimaxi.com/
+
+# 3. 更新环境变量
+export ANTHROPIC_AUTH_TOKEN="新的Token"
+```
+
+### 多个供应商配置冲突？
+
+使用 Shell 函数管理多个供应商：
+
+```bash
+# 方法 1: 使用 shell 函数切换
+claude_use_glm      # 自动设置 GLM 环境变量
+claude_use_minimax  # 自动设置 MiniMax 环境变量
+
+# 方法 2: 使用临时切换
+claude-provider use glm --temp
+
+# 方法 3: 查看当前激活的配置
+claude-provider current
 ```
 
 ### 需要帮助？
@@ -200,6 +380,9 @@ claude-provider --help
 
 # 查看特定命令帮助
 claude-provider use --help
+
+# 提交问题
+# https://github.com/copyboy/claude-provider-cli/issues
 ```
 
 ## 开发 Development
@@ -227,17 +410,22 @@ npm run lint
 
 ## 贡献 Contributing
 
-欢迎贡献！请查看 [CONTRIBUTING.md](CONTRIBUTING.md)
+欢迎贡献！提交 Issue 或 Pull Request：
+
+- 🐛 [报告 Bug](https://github.com/copyboy/claude-provider-cli/issues/new?labels=bug)
+- ✨ [功能建议](https://github.com/copyboy/claude-provider-cli/issues/new?labels=enhancement)
+- 📖 [改进文档](https://github.com/copyboy/claude-provider-cli/issues/new?labels=documentation)
 
 ## 许可证 License
 
-MIT © [Your Name]
+MIT © [Qingdong Zhang](https://github.com/copyboy)
 
 ## 链接 Links
 
 - 📦 [npm Package](https://www.npmjs.com/package/claude-provider-cli)
-- 🐛 [Issue Tracker](https://github.com/yourusername/claude-provider-cli/issues)
-- 📖 [Documentation](https://github.com/yourusername/claude-provider-cli#readme)
+- 🐛 [Issue Tracker](https://github.com/copyboy/claude-provider-cli/issues)
+- 📖 [Documentation](https://github.com/copyboy/claude-provider-cli#readme)
+- 👨‍💻 [Author GitHub](https://github.com/copyboy)
 
 ## 相关项目 Related Projects
 
