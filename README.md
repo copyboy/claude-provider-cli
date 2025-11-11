@@ -71,58 +71,29 @@ npx claude-provider-cli
 
 ## 快速开始 Quick Start
 
-> **注意**: v0.1.0 为 MVP 版本，Token 管理功能将在 v0.2.0 中提供。当前版本需要手动配置 Token。
-
-### 1. 配置 API Token
-
-> **⚠️ v0.1.0 限制**: 当前版本只支持**单一 Token**。如果你的 GLM 和 MiniMax 使用不同的 Token，请选择以下方案之一。
-
-首先在环境变量中配置你的 API Token：
+### 1. 安装
 
 ```bash
-# 编辑你的 shell 配置文件
-vi ~/.zshrc  # 或 ~/.bashrc
-
-# === 场景 A: 两个供应商使用相同 Token ===
-export ANTHROPIC_AUTH_TOKEN="你的共用Token"
-
-# === 场景 B: 两个供应商使用不同 Token（临时方案）===
-# 方案 1: 只配置最常用的供应商Token
-export ANTHROPIC_AUTH_TOKEN="你最常用的GLM密钥"
-
-# 方案 2: 配置两个不同名称的变量（推荐）
-export GLM_TOKEN="你的GLM密钥"
-export MINIMAX_TOKEN="你的MiniMax令牌"
-# 使用时手动切换（见下方说明）
-
-# 重新加载
-source ~/.zshrc
+npm install -g claude-provider-cli
 ```
 
-**如果使用方案 2（不同 Token），切换时需要手动更新：**
-```bash
-# 切换到 GLM
-export ANTHROPIC_AUTH_TOKEN=$GLM_TOKEN
-claude-provider use glm
+### 2. 添加 API Token
 
-# 切换到 MiniMax
-export ANTHROPIC_AUTH_TOKEN=$MINIMAX_TOKEN
-claude-provider use minimax
+首次使用需要为每个供应商添加 API Token：
+
+```bash
+# 添加智谱 GLM Token
+claude-provider add glm --token "your-glm-api-key"
+
+# 添加 MiniMax Token
+claude-provider add minimax --token "your-minimax-jwt-token"
 ```
 
 **获取 API Token：**
 - [智谱 GLM](https://open.bigmodel.cn/) - 智谱 AI 开放平台
 - [MiniMax](https://platform.minimaxi.com/) - MiniMax 开放平台
 
-> **💡 v0.2.0 将彻底解决**: 未来版本将支持每个供应商存储独立 Token，切换时自动切换正确的 Token。
-> ```bash
-> # v0.2.0 将支持
-> claude-provider add glm --token "GLM密钥"
-> claude-provider add minimax --token "MiniMax令牌"
-> claude-provider use glm  # 自动使用正确的Token
-> ```
-
-### 2. 列出可用供应商
+### 3. 查看所有供应商
 
 ```bash
 claude-provider list
@@ -130,22 +101,67 @@ claude-provider list
 
 输出：
 ```
-┌───────────┬────────────┬────────────────────────────┬──────────┐
-│ ID        │ Name       │ Description                │ Status   │
-├───────────┼────────────┼────────────────────────────┼──────────┤
-│ glm       │ 智谱 GLM   │ 智谱 AI GLM 模型服务       │          │
-│ minimax   │ MiniMax M2 │ MiniMax M2 大模型服务      │ ✓ Active │
-└───────────┴────────────┴────────────────────────────┴──────────┘
+┌───────────┬────────────┬────────────────────────────┬──────────────────┬──────────┐
+│ ID        │ Name       │ Description                │ Token            │ Status   │
+├───────────┼────────────┼────────────────────────────┼──────────────────┼──────────┤
+│ glm       │ 智谱 GLM   │ 智谱 AI GLM 模型服务       │ ✓ Configured     │          │
+│ minimax   │ MiniMax M2 │ MiniMax M2 大模型服务      │ ✓ Configured     │ ✓ Active │
+└───────────┴────────────┴────────────────────────────┴──────────────────┴──────────┘
 ```
 
-### 3. 切换供应商（核心功能）
+### 4. 切换供应商（核心功能）
 
 ```bash
-# 切换到智谱 GLM
+# 切换到智谱 GLM（持久化）
 claude-provider use glm
 
-# 切换到 MiniMax
-claude-provider use minimax
+# 输出：
+# ✓ Switched to 智谱 GLM ✓
+# Updated /Users/you/.zshrc (zsh)
+# 
+# To apply changes:
+#   Option 1: Run: source /Users/you/.zshrc
+#   Option 2: Open a new terminal window
+```
+
+### 5. 应用更改
+
+```bash
+# 方式 1: 当前终端立即生效
+source ~/.zshrc   # 或 ~/.bashrc
+
+# 方式 2: 打开新终端（自动生效）
+```
+
+### 6. 验证配置
+
+```bash
+# 查看当前激活的供应商
+claude-provider current
+
+# 检查环境变量
+echo $ANTHROPIC_AUTH_TOKEN
+echo $ANTHROPIC_BASE_URL
+```
+
+### 7. 开始使用 Claude Code
+
+```bash
+claude code "帮我写一个快速排序算法"
+# 正常工作！使用的是智谱 GLM API
+```
+
+### 临时切换（仅当前会话）
+
+如果只想临时测试某个供应商，不修改配置文件：
+
+```bash
+claude-provider use minimax --temp
+
+# 输出：
+# ✓ Temporarily switched to MiniMax M2
+# ⚠ This is a temporary switch (current session only)
+# Changes will NOT persist to new terminals
 ```
 
 **工具会自动：**
@@ -172,28 +188,104 @@ claude code "帮我写代码"
 
 ## 命令 Commands
 
+### `add` - 添加/更新供应商 Token
+
+为内置或自定义供应商添加 API Token。
+
+**为内置供应商添加 Token：**
+
+```bash
+# 交互式提示输入 Token
+claude-provider add glm
+
+# 直接指定 Token
+claude-provider add glm --token "your-api-key"
+
+# 添加 MiniMax Token
+claude-provider add minimax --token "your-jwt-token"
+```
+
+**创建自定义供应商：**
+
+```bash
+# 完整命令行参数
+claude-provider add my-api \
+  --token "your-token" \
+  --url "https://api.example.com/anthropic" \
+  --name "My Custom API" \
+  --description "My custom Claude-compatible API"
+
+# 交互式提示
+claude-provider add my-api
+# 将提示输入：name, url, token, description
+```
+
+**选项：**
+- `-t, --token <token>` - API 认证 Token
+- `-u, --url <url>` - API 基础 URL（仅自定义供应商）
+- `-n, --name <name>` - 供应商显示名称（仅自定义供应商）
+- `-d, --description <desc>` - 供应商描述（仅自定义供应商）
+
 ### `list` - 列出供应商
 
-列出所有可用的 API 供应商。
+列出所有可用的 API 供应商及其 Token 配置状态。
 
 ```bash
 claude-provider list
 claude-provider ls                # 别名
 
-# JSON 输出
+# JSON 输出（Token 被掩码保护）
 claude-provider list --json
+```
+
+输出示例：
+```
+┌───────────┬────────────┬────────────────────────────┬──────────────────┬──────────┐
+│ ID        │ Name       │ Description                │ Token            │ Status   │
+├───────────┼────────────┼────────────────────────────┼──────────────────┼──────────┤
+│ glm       │ 智谱 GLM   │ 智谱 AI GLM 模型服务       │ ✓ Configured     │ ✓ Active │
+│ minimax   │ MiniMax M2 │ MiniMax M2 大模型服务      │ ✗ Not configured │          │
+└───────────┴────────────┴────────────────────────────┴──────────────────┴──────────┘
 ```
 
 ### `use` - 切换供应商
 
-切换到指定的 API 供应商。
+切换到指定的 API 供应商。默认持久化到 Shell 配置文件。
 
 ```bash
+# 持久化切换（推荐）
 claude-provider use <provider-id>
 
 # 临时切换（仅当前会话）
-claude-provider use glm --temp
+claude-provider use <provider-id> --temp
 ```
+
+**示例：**
+
+```bash
+# 切换到 GLM（写入 ~/.zshrc）
+claude-provider use glm
+
+# 临时切换到 MiniMax（不修改配置文件）
+claude-provider use minimax --temp
+```
+
+**工作原理：**
+
+持久化切换：
+1. 读取 Token 从配置文件
+2. 写入所有环境变量到 `~/.zshrc` 或 `~/.bashrc`
+3. 自动备份原配置文件
+4. 在当前会话也设置环境变量
+5. 新终端自动应用配置
+
+临时切换：
+1. 仅在当前 shell 会话设置环境变量
+2. 不修改任何配置文件
+3. 关闭终端后失效
+
+**选项：**
+- `-t, --temp` - 临时切换（不持久化）
 
 ### `current` - 当前供应商
 
@@ -244,33 +336,66 @@ Base URL: https://api.minimaxi.com/anthropic
 - **Linux**: `~/.config/claude-provider-cli-nodejs/config.json`
 - **Windows**: `%APPDATA%\claude-provider-cli-nodejs\config.json`
 
-### 配置内容说明
+### 配置内容
 
 配置文件存储：
 - ✅ 供应商列表和详细信息
+- ✅ **API Tokens**（安全存储，chmod 600）
 - ✅ 当前激活的供应商
 - ✅ 基础 URL 和环境变量配置
 - ✅ 用户偏好设置
 
-**重要安全说明**: 
-- API Token **不会**存储在配置文件中
-- Token 需要手动配置到环境变量（v0.1.0 MVP 版本）
-- 未来版本（v0.2.0+）将提供 `add`/`edit`/`remove` 命令来安全管理 Token
+### Token 安全存储
 
-### 当前版本 Token 管理
+**v0.2.0 特性：**
 
-**v0.1.0（当前）：**
-- 用户需要手动在 `~/.zshrc` 中配置 `ANTHROPIC_AUTH_TOKEN`
-- 工具负责管理其他所有环境变量（BASE_URL、MODEL 等）
-- 工具记住你选择的供应商，自动切换配置
+- ✅ Tokens 安全存储在配置文件中
+- ✅ 配置文件权限：`chmod 600`（仅所有者读写）
+- ✅ 每个供应商独立 Token
+- ✅ 切换供应商自动切换正确的 Token
+- ✅ Token 在输出中自动掩码
 
-**v0.2.0（计划中）：**
+**工作原理：**
+
 ```bash
-# 未来将支持
-claude-provider add glm --token "你的密钥"
-claude-provider edit glm --token "新密钥"
-claude-provider remove custom-provider
+# 1. 添加 Token（存储到配置文件）
+claude-provider add glm --token "your-token"
+# → 配置文件被设置为 chmod 600
+
+# 2. 切换供应商（自动读取并应用 Token）
+claude-provider use glm
+# → 读取配置文件中的 Token
+# → 写入所有环境变量（含 Token）到 ~/.zshrc
+# → Token 在终端输出中被掩码
 ```
+
+### Shell 集成
+
+工具会自动修改你的 Shell 配置文件：
+
+**支持的 Shell：**
+- ✅ bash (`.bashrc` / `.bash_profile`)
+- ✅ zsh (`.zshrc`)
+- ✅ fish (`.config/fish/config.fish`)
+- ✅ PowerShell (`profile.ps1`)
+
+**配置块示例（~/.zshrc）：**
+
+```bash
+# >>> claude-provider-cli init >>>
+# Claude Provider CLI - Environment Configuration
+# DO NOT EDIT THIS BLOCK MANUALLY - managed by claude-provider CLI
+
+export ANTHROPIC_BASE_URL="https://open.bigmodel.cn/api/anthropic"
+export ANTHROPIC_AUTH_TOKEN="6d7909c078..."
+
+# <<< claude-provider-cli init <<<
+```
+
+**安全特性：**
+- 自动备份原配置文件（`.zshrc.claude-provider-backup`）
+- 使用标记管理配置块，避免重复
+- 清晰的 "DO NOT EDIT" 警告
 
 ### 获取 API Token
 
@@ -278,25 +403,28 @@ claude-provider remove custom-provider
 1. 访问 [智谱 AI 开放平台](https://open.bigmodel.cn/)
 2. 注册/登录账号
 3. 在控制台创建 API Key
-4. 复制 API Key 到环境变量
+4. 使用 `claude-provider add glm --token "your-key"` 添加
 
 #### MiniMax API
 1. 访问 [MiniMax 开放平台](https://platform.minimaxi.com/)
 2. 注册/登录账号  
 3. 在控制台创建 API Token
-4. 复制 Token 到环境变量
+4. 使用 `claude-provider add minimax --token "your-token"` 添加
 
-### 环境变量说明
+### 环境变量
 
-**用户需要配置（手动）：**
-- `ANTHROPIC_AUTH_TOKEN`: API 认证令牌（唯一需要手动配置的）
+**工具完全管理所有环境变量：**
 
-**工具自动管理：**
-- `ANTHROPIC_BASE_URL`: API 基础地址（工具自动设置）
-- `API_TIMEOUT_MS`: 超时时间（工具自动设置）
-- `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`: 流量控制（工具自动设置）
-- `ANTHROPIC_MODEL`: 模型配置（工具自动设置）
-- 其他模型相关变量（工具自动设置）
+| 变量名 | 说明 | 管理方式 |
+|--------|------|----------|
+| `ANTHROPIC_AUTH_TOKEN` | API 认证令牌 | 从配置读取并写入 RC 文件 |
+| `ANTHROPIC_BASE_URL` | API 基础地址 | 自动设置 |
+| `API_TIMEOUT_MS` | 超时时间 | 自动设置（MiniMax） |
+| `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | 流量控制 | 自动设置（MiniMax） |
+| `ANTHROPIC_MODEL` | 模型配置 | 自动设置（MiniMax） |
+| `ANTHROPIC_*_MODEL` | 其他模型变量 | 自动设置（MiniMax） |
+
+**用户无需手动配置任何环境变量！**
 
 ### 查看配置
 
@@ -307,9 +435,12 @@ claude-provider current
 # 查看配置文件（macOS）
 cat ~/Library/Preferences/claude-provider-cli-nodejs/config.json
 
+# 查看 Shell RC 文件中的配置块
+grep -A 10 "claude-provider-cli init" ~/.zshrc
+
 # 查看当前环境变量
-echo $ANTHROPIC_AUTH_TOKEN  # 你配置的
-echo $ANTHROPIC_BASE_URL    # 工具设置的
+echo $ANTHROPIC_AUTH_TOKEN
+echo $ANTHROPIC_BASE_URL
 ```
 
 ## 使用场景 Use Cases
@@ -352,18 +483,11 @@ claude-provider use minimax
 如果遇到认证错误，可能是 Token 未配置：
 
 ```bash
-# 检查环境变量是否设置
-echo $ANTHROPIC_AUTH_TOKEN
+# 检查 Token 状态
+claude-provider list
 
-# 如果为空，需要配置 Token
-# 编辑 shell 配置文件
-vi ~/.zshrc  # 或 ~/.bashrc
-
-# 添加环境变量
-export ANTHROPIC_AUTH_TOKEN="你的API密钥"
-
-# 重新加载
-source ~/.zshrc
+# 如果显示 "✗ Not configured"，添加 Token
+claude-provider add glm --token "your-api-key"
 ```
 
 ### 配置未生效？
@@ -374,7 +498,7 @@ source ~/.zshrc
 # 查看当前配置
 claude-provider current
 
-# 重新加载 shell
+# 重新应用配置
 source ~/.zshrc
 # 或
 source ~/.bashrc
@@ -400,73 +524,37 @@ curl -I https://open.bigmodel.cn/api/anthropic
 
 ### Token 无效？
 
-验证 Token 是否正确：
+更新 Token：
 
 ```bash
-# 1. 检查 Token 值
-echo $ANTHROPIC_AUTH_TOKEN
-
-# 2. 重新获取 Token
+# 1. 重新获取 Token
 # 智谱 GLM: https://open.bigmodel.cn/
 # MiniMax: https://platform.minimaxi.com/
 
-# 3. 更新环境变量
-export ANTHROPIC_AUTH_TOKEN="新的Token"
+# 2. 更新 Token
+claude-provider add glm --token "new-token"
+
+# 3. 重新切换
+claude-provider use glm
 ```
 
-### 多个供应商如何管理 Token？
+### 如何管理多个供应商的 Token？
 
-> **这是 v0.1.0 的核心限制**
-
-**问题说明：**
-
-当前版本只支持单一 `ANTHROPIC_AUTH_TOKEN` 环境变量。如果 GLM 和 MiniMax 使用不同的 Token，切换供应商时：
-- ✅ 工具会自动切换 `ANTHROPIC_BASE_URL`
-- ✅ 工具会自动切换 `ANTHROPIC_MODEL` 等其他变量
-- ❌ 但 `ANTHROPIC_AUTH_TOKEN` **不会自动切换**
-
-**临时解决方案：**
+**v0.2.0 完美支持：**
 
 ```bash
-# 在 ~/.zshrc 中配置两个变量
-export GLM_TOKEN="你的GLM密钥"
-export MINIMAX_TOKEN="你的MiniMax令牌"
-
-# 创建别名简化操作
-alias use-glm='export ANTHROPIC_AUTH_TOKEN=$GLM_TOKEN && claude-provider use glm'
-alias use-minimax='export ANTHROPIC_AUTH_TOKEN=$MINIMAX_TOKEN && claude-provider use minimax'
-
-# 使用
-use-glm      # 切换到 GLM（Token + 配置）
-use-minimax  # 切换到 MiniMax（Token + 配置）
-```
-
-**v0.2.0 完整解决方案：**
-
-```bash
-# 未来版本将支持
-claude-provider add glm --token "GLM密钥"
-claude-provider add minimax --token "MiniMax令牌"
+# 每个供应商独立 Token
+claude-provider add glm --token "glm-token-123"
+claude-provider add minimax --token "minimax-token-456"
 
 # 切换时自动使用正确的 Token
-claude-provider use glm      # 自动切换到 GLM Token
-claude-provider use minimax  # 自动切换到 MiniMax Token
+claude-provider use glm      # 自动使用 glm-token-123
+claude-provider use minimax  # 自动使用 minimax-token-456
 
 # Token 安全存储在配置文件中（chmod 600）
+ls -la ~/Library/Preferences/claude-provider-cli-nodejs/config.json
+# -rw------- ... config.json  （仅所有者可读写）
 ```
-
-**为什么现在不支持？**
-
-v0.1.0 是 MVP 版本，专注于核心功能：
-- ✅ 供应商切换和管理
-- ✅ 环境变量自动配置
-- ✅ 配置持久化
-
-Token 安全管理需要更多考虑：
-- 🔐 安全存储机制
-- 🔄 Token 加密/解密
-- 📝 完整的 CRUD 操作
-- ✅ 这些将在 v0.2.0 中实现
 
 ### 需要帮助？
 
